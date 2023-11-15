@@ -1404,6 +1404,7 @@ static const CGFloat SVProgressHUDLabelSpacing = 8.0f;
 }
 
 - (NSArray<UIWindow *> *)windowsForActiveScene {
+#if !defined(SV_APP_EXTENSIONS)
     NSMutableArray<UIWindow *> *resultWindows = [NSMutableArray array];
 
     for (UIWindowScene *windowScene in [UIApplication sharedApplication].connectedScenes) {
@@ -1411,8 +1412,11 @@ static const CGFloat SVProgressHUDLabelSpacing = 8.0f;
             [resultWindows addObjectsFromArray:windowScene.windows];
         }
     }
-
+    
     return [resultWindows copy];
+#endif
+    
+    return @[];
 }
     
 - (void)fadeInEffects {

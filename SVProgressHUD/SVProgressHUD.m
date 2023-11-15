@@ -1356,7 +1356,7 @@ static const CGFloat SVProgressHUDLabelSpacing = 8.0f;
 - (CGFloat)visibleKeyboardHeight {
 #if !defined(SV_APP_EXTENSIONS)
     UIWindow *keyboardWindow = nil;
-    for (UIWindow *testWindow in UIApplication.sharedApplication.windows) {
+    for (UIWindow *testWindow in self.windowsForActiveScene) {
         if(![testWindow.class isEqual:UIWindow.class]) {
             keyboardWindow = testWindow;
             break;
@@ -1388,7 +1388,7 @@ static const CGFloat SVProgressHUDLabelSpacing = 8.0f;
     
 - (UIWindow *)frontWindow {
 #if !defined(SV_APP_EXTENSIONS)
-    NSEnumerator *frontToBackWindows = [UIApplication.sharedApplication.windows reverseObjectEnumerator];
+    NSEnumerator *frontToBackWindows = [self.windowsForActiveScene reverseObjectEnumerator];
     for (UIWindow *window in frontToBackWindows) {
         BOOL windowOnMainScreen = window.screen == UIScreen.mainScreen;
         BOOL windowIsVisible = !window.hidden && window.alpha > 0;
@@ -1401,6 +1401,18 @@ static const CGFloat SVProgressHUDLabelSpacing = 8.0f;
     }
 #endif
     return nil;
+}
+
+- (NSArray<UIWindow *> *)windowsForActiveScene {
+    NSMutableArray<UIWindow *> *resultWindows = [NSMutableArray array];
+
+    for (UIWindowScene *windowScene in [UIApplication sharedApplication].connectedScenes) {
+        if (windowScene.activationState == UISceneActivationStateForegroundActive) {
+            [resultWindows addObjectsFromArray:windowScene.windows];
+        }
+    }
+
+    return [resultWindows copy];
 }
     
 - (void)fadeInEffects {

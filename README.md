@@ -14,7 +14,7 @@
 
 Try `SVProgressHUD` on [Appetize.io](https://appetize.io/app/p8r2cvy8kq74x7q7tjqf5gyatr).
 
-## Installation
+## Installation     
 
 ### From CocoaPods
 

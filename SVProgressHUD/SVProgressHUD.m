@@ -973,7 +973,7 @@ static const CGFloat SVProgressHUDLabelSpacing = 8.0f;
             // Animate appearance
             [UIView animateWithDuration:self.fadeInAnimationDuration
                                   delay:0
-                                options:(UIViewAnimationOptions) (UIViewAnimationOptionAllowUserInteraction | UIViewAnimationCurveEaseIn | UIViewAnimationOptionBeginFromCurrentState)
+                                options:(UIViewAnimationOptions) (UIViewAnimationOptionAllowUserInteraction | UIViewAnimationOptionCurveEaseIn | UIViewAnimationOptionBeginFromCurrentState)
                              animations:^{
                                  animationsBlock();
                              } completion:^(BOOL finished) {
@@ -1077,7 +1077,7 @@ static const CGFloat SVProgressHUDLabelSpacing = 8.0f;
                     // Animate appearance
                     [UIView animateWithDuration:strongSelf.fadeOutAnimationDuration
                                           delay:0
-                                        options:(UIViewAnimationOptions) (UIViewAnimationOptionAllowUserInteraction | UIViewAnimationCurveEaseOut | UIViewAnimationOptionBeginFromCurrentState)
+                                        options:(UIViewAnimationOptions) (UIViewAnimationOptionAllowUserInteraction | UIViewAnimationOptionCurveEaseOut | UIViewAnimationOptionBeginFromCurrentState)
                                      animations:^{
                                          animationsBlock();
                                      } completion:^(BOOL finished) {

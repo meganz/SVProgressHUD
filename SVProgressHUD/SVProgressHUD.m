@@ -71,7 +71,7 @@ static const CGFloat SVProgressHUDLabelSpacing = 8.0f;
 #if !defined(SV_APP_EXTENSIONS)
     dispatch_once(&once, ^{ sharedView = [[self alloc] initWithFrame:[[[UIApplication sharedApplication] delegate] window].bounds]; });
 #else
-    dispatch_once(&once, ^{ sharedView = [[self alloc] initWithFrame:[[UIScreen mainScreen] bounds]]; });
+    dispatch_once(&once, ^{ sharedView = [[self alloc] initWithFrame:CGRectZero]; });
 #endif
     return sharedView;
 }
@@ -675,7 +675,7 @@ static const CGFloat SVProgressHUDLabelSpacing = 8.0f;
     if (self.viewForExtension) {
         self.frame = self.viewForExtension.frame;
     } else {
-        self.frame = UIScreen.mainScreen.bounds;
+        self.frame = self.window.bounds;
     }
 #if TARGET_OS_IOS
     UIInterfaceOrientation orientation = CGRectGetWidth(self.frame) > CGRectGetHeight(self.frame) ? UIInterfaceOrientationLandscapeLeft : UIInterfaceOrientationPortrait;
@@ -1245,7 +1245,7 @@ static const CGFloat SVProgressHUDLabelSpacing = 8.0f;
     CGRect windowBounds = [[[UIApplication sharedApplication] delegate] window].bounds;
     _controlView.frame = windowBounds;
 #else
-    _controlView.frame = [UIScreen mainScreen].bounds;
+    _controlView.frame = self.viewForExtension ? self.viewForExtension.bounds : self.window.bounds;
 #endif
     
     return _controlView;
@@ -1390,12 +1390,11 @@ static const CGFloat SVProgressHUDLabelSpacing = 8.0f;
 #if !defined(SV_APP_EXTENSIONS)
     NSEnumerator *frontToBackWindows = [self.windowsForActiveScene reverseObjectEnumerator];
     for (UIWindow *window in frontToBackWindows) {
-        BOOL windowOnMainScreen = window.screen == UIScreen.mainScreen;
         BOOL windowIsVisible = !window.hidden && window.alpha > 0;
         BOOL windowLevelSupported = (window.windowLevel >= UIWindowLevelNormal && window.windowLevel <= self.maxSupportedWindowLevel);
         BOOL windowKeyWindow = window.isKeyWindow;
 			
-        if(windowOnMainScreen && windowIsVisible && windowLevelSupported && windowKeyWindow) {
+        if(windowIsVisible && windowLevelSupported && windowKeyWindow) {
             return window;
         }
     }

@@ -71,7 +71,7 @@ static const CGFloat SVProgressHUDLabelSpacing = 8.0f;
 #if !defined(SV_APP_EXTENSIONS)
     dispatch_once(&once, ^{ sharedView = [[self alloc] initWithFrame:[[[UIApplication sharedApplication] delegate] window].bounds]; });
 #else
-    dispatch_once(&once, ^{ sharedView = [[self alloc] initWithFrame:[[UIScreen mainScreen] bounds]]; });
+    dispatch_once(&once, ^{ sharedView = [[self alloc] initWithFrame:CGRectZero]; });
 #endif
     return sharedView;
 }
@@ -125,6 +125,22 @@ static const CGFloat SVProgressHUDLabelSpacing = 8.0f;
 
 + (void)setBorderWidth:(CGFloat)width {
     [self sharedView].hudView.layer.borderWidth = width;
+}
+
++ (void)setShadowColor:(nonnull UIColor*)color {
+    [self sharedView].layer.shadowColor = color.CGColor;
+}
+
++ (void)setShadowOffset:(CGSize)size {
+    [self sharedView].layer.shadowOffset = size;
+}
+
++ (void)setShadowOpacity:(CGFloat)opacity {
+    [self sharedView].layer.shadowOpacity = opacity;
+}
+
++ (void)setShadowRadius:(CGFloat)radius {
+    [self sharedView].layer.shadowRadius = radius;
 }
 
 + (void)setFont:(UIFont*)font {
@@ -613,7 +629,7 @@ static const CGFloat SVProgressHUDLabelSpacing = 8.0f;
 #if TARGET_OS_IOS
     [[NSNotificationCenter defaultCenter] addObserver:self
                                              selector:@selector(positionHUD:)
-                                                 name:UIApplicationDidChangeStatusBarOrientationNotification
+                                                 name:UIDeviceOrientationDidChangeNotification
                                                object:nil];
     
     [[NSNotificationCenter defaultCenter] addObserver:self
@@ -652,14 +668,14 @@ static const CGFloat SVProgressHUDLabelSpacing = 8.0f;
 
 #if !defined(SV_APP_EXTENSIONS) && TARGET_OS_IOS
     self.frame = [[[UIApplication sharedApplication] delegate] window].bounds;
-    UIInterfaceOrientation orientation = UIApplication.sharedApplication.statusBarOrientation;
+    UIInterfaceOrientation orientation = self.window.windowScene.interfaceOrientation;
 #elif !defined(SV_APP_EXTENSIONS) && !TARGET_OS_IOS
     self.frame= [UIApplication sharedApplication].keyWindow.bounds;
 #else
     if (self.viewForExtension) {
         self.frame = self.viewForExtension.frame;
     } else {
-        self.frame = UIScreen.mainScreen.bounds;
+        self.frame = self.window.bounds;
     }
 #if TARGET_OS_IOS
     UIInterfaceOrientation orientation = CGRectGetWidth(self.frame) > CGRectGetHeight(self.frame) ? UIInterfaceOrientationLandscapeLeft : UIInterfaceOrientationPortrait;
@@ -689,7 +705,7 @@ static const CGFloat SVProgressHUDLabelSpacing = 8.0f;
     CGRect orientationFrame = self.bounds;
 
 #if !defined(SV_APP_EXTENSIONS) && TARGET_OS_IOS
-    CGRect statusBarFrame = UIApplication.sharedApplication.statusBarFrame;
+    CGRect statusBarFrame = self.window.windowScene.statusBarManager.statusBarFrame;
 #else
     CGRect statusBarFrame = CGRectZero;
 #endif
@@ -957,7 +973,7 @@ static const CGFloat SVProgressHUDLabelSpacing = 8.0f;
             // Animate appearance
             [UIView animateWithDuration:self.fadeInAnimationDuration
                                   delay:0
-                                options:(UIViewAnimationOptions) (UIViewAnimationOptionAllowUserInteraction | UIViewAnimationCurveEaseIn | UIViewAnimationOptionBeginFromCurrentState)
+                                options:(UIViewAnimationOptions) (UIViewAnimationOptionAllowUserInteraction | UIViewAnimationOptionCurveEaseIn | UIViewAnimationOptionBeginFromCurrentState)
                              animations:^{
                                  animationsBlock();
                              } completion:^(BOOL finished) {
@@ -1035,7 +1051,7 @@ static const CGFloat SVProgressHUDLabelSpacing = 8.0f;
                     
                     // Tell the rootViewController to update the StatusBar appearance
 #if !defined(SV_APP_EXTENSIONS) && TARGET_OS_IOS
-                    UIViewController *rootController = [[UIApplication sharedApplication] keyWindow].rootViewController;
+                    UIViewController *rootController = self.window.rootViewController;
                     [rootController setNeedsStatusBarAppearanceUpdate];
 #endif
                     
@@ -1061,7 +1077,7 @@ static const CGFloat SVProgressHUDLabelSpacing = 8.0f;
                     // Animate appearance
                     [UIView animateWithDuration:strongSelf.fadeOutAnimationDuration
                                           delay:0
-                                        options:(UIViewAnimationOptions) (UIViewAnimationOptionAllowUserInteraction | UIViewAnimationCurveEaseOut | UIViewAnimationOptionBeginFromCurrentState)
+                                        options:(UIViewAnimationOptions) (UIViewAnimationOptionAllowUserInteraction | UIViewAnimationOptionCurveEaseOut | UIViewAnimationOptionBeginFromCurrentState)
                                      animations:^{
                                          animationsBlock();
                                      } completion:^(BOOL finished) {
@@ -1108,7 +1124,7 @@ static const CGFloat SVProgressHUDLabelSpacing = 8.0f;
         }
         
         if(!_indefiniteAnimatedView){
-            _indefiniteAnimatedView = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleWhiteLarge];
+            _indefiniteAnimatedView = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleLarge];
         }
         
         // Update styling
@@ -1229,7 +1245,7 @@ static const CGFloat SVProgressHUDLabelSpacing = 8.0f;
     CGRect windowBounds = [[[UIApplication sharedApplication] delegate] window].bounds;
     _controlView.frame = windowBounds;
 #else
-    _controlView.frame = [UIScreen mainScreen].bounds;
+    _controlView.frame = self.viewForExtension ? self.viewForExtension.bounds : self.window.bounds;
 #endif
     
     return _controlView;
@@ -1340,7 +1356,7 @@ static const CGFloat SVProgressHUDLabelSpacing = 8.0f;
 - (CGFloat)visibleKeyboardHeight {
 #if !defined(SV_APP_EXTENSIONS)
     UIWindow *keyboardWindow = nil;
-    for (UIWindow *testWindow in UIApplication.sharedApplication.windows) {
+    for (UIWindow *testWindow in self.windowsForActiveScene) {
         if(![testWindow.class isEqual:UIWindow.class]) {
             keyboardWindow = testWindow;
             break;
@@ -1372,19 +1388,34 @@ static const CGFloat SVProgressHUDLabelSpacing = 8.0f;
     
 - (UIWindow *)frontWindow {
 #if !defined(SV_APP_EXTENSIONS)
-    NSEnumerator *frontToBackWindows = [UIApplication.sharedApplication.windows reverseObjectEnumerator];
+    NSEnumerator *frontToBackWindows = [self.windowsForActiveScene reverseObjectEnumerator];
     for (UIWindow *window in frontToBackWindows) {
-        BOOL windowOnMainScreen = window.screen == UIScreen.mainScreen;
         BOOL windowIsVisible = !window.hidden && window.alpha > 0;
         BOOL windowLevelSupported = (window.windowLevel >= UIWindowLevelNormal && window.windowLevel <= self.maxSupportedWindowLevel);
         BOOL windowKeyWindow = window.isKeyWindow;
 			
-        if(windowOnMainScreen && windowIsVisible && windowLevelSupported && windowKeyWindow) {
+        if(windowIsVisible && windowLevelSupported && windowKeyWindow) {
             return window;
         }
     }
 #endif
     return nil;
+}
+
+- (NSArray<UIWindow *> *)windowsForActiveScene {
+#if !defined(SV_APP_EXTENSIONS)
+    NSMutableArray<UIWindow *> *resultWindows = [NSMutableArray array];
+
+    for (UIWindowScene *windowScene in [UIApplication sharedApplication].connectedScenes) {
+        if (windowScene.activationState == UISceneActivationStateForegroundActive) {
+            [resultWindows addObjectsFromArray:windowScene.windows];
+        }
+    }
+    
+    return [resultWindows copy];
+#endif
+    
+    return @[];
 }
     
 - (void)fadeInEffects {

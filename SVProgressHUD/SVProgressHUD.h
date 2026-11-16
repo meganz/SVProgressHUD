@@ -140,6 +140,7 @@ typedef void (^SVProgressHUDDismissCompletion)(void);
 + (void)showImage:(nonnull UIImage*)image status:(nullable NSString*)status maskType:(SVProgressHUDMaskType)maskType __attribute__((deprecated("Use showImage:status: and setDefaultMaskType: instead.")));
 
 + (void)setOffsetFromCenter:(UIOffset)offset;
++ (void)updateOffsetFromCenter:(UIOffset)offset; // sets the offset and moves a visible HUD at once
 + (void)resetOffsetFromCenter;
 
 + (void)popActivity; // decrease activity count, if activity count == 0 the HUD is dismissed

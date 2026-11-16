@@ -396,6 +396,14 @@ static const CGFloat SVProgressHUDLabelSpacing = 8.0f;
     [self sharedView].offsetFromCenter = offset;
 }
 
++ (void)updateOffsetFromCenter:(UIOffset)offset {
+    SVProgressHUD *sharedView = [self sharedView];
+    sharedView.offsetFromCenter = offset;
+    if ([self isVisible]) {
+        [sharedView positionHUD:nil];
+    }
+}
+
 + (void)resetOffsetFromCenter {
     [self setOffsetFromCenter:UIOffsetZero];
 }
